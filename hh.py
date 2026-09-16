@@ -84,4 +84,5 @@ axG.set_ylabel("Gate value")
 axG.legend()
 
 plt.tight_layout()
+plt.savefig("figures/gating_dynamics.png", dpi=150, bbox_inches="tight")
 plt.show()
