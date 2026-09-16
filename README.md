@@ -18,7 +18,8 @@ activity, from the ion channel up.
 HH treats a patch of membrane as an electrical circuit: a capacitor (the lipid
 bilayer) in parallel with three ionic conductances - sodium, potassium, and a
 passive leak - each in series with its reversal (Nernst) potential. The membrane
-potential evolves according to C_m dV/dt = I_ext - g_Nam^3h*(V - E_Na) - g_Kn^4(V - E_K) - g_L*(V - E_L) 
+potential evolves according to C_m dV/dt = I_ext - g_Nam^3h*(V - E_Na) - g_Kn^4(V - E_K) - g_L*(V - E_L)
+
 
 The sodium and potassium conductances are voltage- and time-dependent,
 controlled by three gating variables:
@@ -40,6 +41,9 @@ formulation using standard squid-axon parameters.
   variables aligned beneath it
 
 ## Running it
+
+pip install -r requirements.txt
+python hh.py
 
 
 This prints the resting-state check, opens the figure, and saves it to
