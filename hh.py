@@ -1,3 +1,4 @@
+from scipy.integrate import solve_ivp
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -23,30 +24,6 @@ def beta_n(V):  return 0.125 * np.exp(-(V + 65) / 80)
 # ---- For any gate: steady-state target and time constant ----
 def x_inf(alpha, beta): return alpha / (alpha + beta)
 def tau(alpha, beta):   return 1.0 / (alpha + beta)
-
-# ---- Sanity check: what do the gates want to do at each voltage? ----
-V = np.linspace(-90, 50, 200)
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
-
-ax1.plot(V, x_inf(alpha_m(V), beta_m(V)), label='m∞  (Na activation)')
-ax1.plot(V, x_inf(alpha_h(V), beta_h(V)), label='h∞  (Na inactivation)')
-ax1.plot(V, x_inf(alpha_n(V), beta_n(V)), label='n∞  (K activation)')
-ax1.set_xlabel('Membrane potential V (mV)')
-ax1.set_ylabel('Steady-state value')
-ax1.set_title('Where each gate settles')
-ax1.legend()
-
-ax2.plot(V, tau(alpha_m(V), beta_m(V)), label='τm')
-ax2.plot(V, tau(alpha_h(V), beta_h(V)), label='τh')
-ax2.plot(V, tau(alpha_n(V), beta_n(V)), label='τn')
-ax2.set_xlabel('Membrane potential V (mV)')
-ax2.set_ylabel('Time constant (ms)')
-ax2.set_title('How fast each gate responds')
-ax2.legend()
-
-plt.tight_layout()
-plt.show()
 
 # ---- Injected current stimulus (uA/cm^2) as a function of time ----
 def I_ext(t):
@@ -77,3 +54,34 @@ y0 = [V0, m0, h0, n0]
 # Sanity check: a neuron left alone should barely move.
 print(f"Resting gates:        m0={m0:.3f}  h0={h0:.3f}  n0={n0:.3f}")
 print(f"Derivatives at rest:  {derivatives(0.0, y0)}")
+
+# ---- Integrate the system over time ----
+t_span = (0.0, 50.0)                  # simulate 0–50 ms
+t_eval = np.linspace(*t_span, 5000)   # where to record the solution
+
+sol = solve_ivp(derivatives, t_span, y0,
+                t_eval=t_eval, method="RK45",
+                rtol=1e-6, atol=1e-6)
+
+V_trace = sol.y[0]
+m_trace = sol.y[1]
+h_trace = sol.y[2]
+n_trace = sol.y[3]
+
+# ---- Membrane potential with gating variables beneath ----
+fig, (axV, axG) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+
+axV.plot(sol.t, V_trace)
+axV.set_ylabel("V (mV)")
+axV.set_title("Membrane potential and gating variables")
+axV.axhline(0, color="gray", lw=0.5, ls="--")
+
+axG.plot(sol.t, m_trace, label="m  (Na activation)")
+axG.plot(sol.t, h_trace, label="h  (Na inactivation)")
+axG.plot(sol.t, n_trace, label="n  (K activation)")
+axG.set_xlabel("Time (ms)")
+axG.set_ylabel("Gate value")
+axG.legend()
+
+plt.tight_layout()
+plt.show()
